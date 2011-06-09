@@ -1,0 +1,56 @@
+pcapfile, a Python module for manipulating packet capture files.
+
+Copyright © 2011 Fábio Olivé Leite <fleite@redhat.com>
+
+This is a simple Python module for reading, manipulating and writing out packet
+capture files in the libpcap format. There is no provision and no plans for
+ever supporting the actual capture of packets from network interfaces; it is
+meant simply to allow people to open files and process the packets using a
+pythonic approach.
+
+At least on the first several versions there is no attempt to make it optimized
+or efficient in any way. One could say it is an evolving exercise in how to
+best describe a packet capture file using Python objects and allow programmatic
+(or interactive via the python interpreter) manipulation of those files. Once
+that part is stable, perhaps it will then make sense to start optimizing memory
+usage and execution speed.
+
+It supports protocol decoders (likely reinventing many wheels) so that one can
+easily refer to protocol fields for a packet, or find packets containing some
+specific protocol. The idea is to explore the dynamic nature of Python objects
+by simply adding new protocol objects as members of the packet object as those
+are found while decoding the raw packet data.
+
+The protocol decoders are chained in code in a very simple fashion. If the link
+type is Ethernet, the PcapPacket constructor creates an Ethernet object passing
+to it the packet object itself so that it can decode the raw data. The Ethernet
+constructor checks the Ethernet type field, and creates the appropriate object
+to handle that protocol, and so on. So for example, PcapPacket calls Ethernet,
+which calls IP, which calls UDP etc.
+
+An example interactive session might look like:
+
+$ python
+>>> import pcapfile
+>>> pf = pcapfile.PcapFile("test.pcap")
+>>> pf.header
+PcapFileHeader(magic=0xA1B2C3D4, versionMajor=2, versionMinor=4, thisZone=0,
+    sigFigs=0, snapLen=65535, linkType=1)
+>>> len(pf)
+58             # the capture contains 58 packets
+>>> p = pf[7]  # get a certain packet in the capture
+>>> p.header   # pcap metadata about captured packet
+PcapPacketHeader(tvSec=1293123689, tvUSec=641409), capLen=211, wireLen=211)
+>>> p[12:14]   # looking at actual packet bytes
+'\x08\x00'
+>>> p.protocols
+['Ethernet', 'IP', 'UDP']
+>>> p.ethernet.srcStr
+'00:24:d7:2a:4b:6d'
+>>> p.ip.version
+4
+
+I do not have a lot of time to devote to this pet project, so feel free to help
+me implement any extra features you'd like to have, but please do not expect
+immediate responses from me. This is a fun project for when I have time to hack
+it, so please do not spoil it. :)
