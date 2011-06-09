@@ -14,9 +14,10 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-__all__ = [ "Ethernet", "IP", "ARP" ]
+# Some helper functions for all protocols
 
-from Ethernet import Ethernet
-from IP import IP
-from ARP import ARP
+def macHex(mac):
+    return ":".join(map(lambda x: "{0:02x}".format(x), map(ord, mac)))
 
+def ipv4Dotted(ip):
+    return ".".join(map(lambda x: str(x), map(ord, ip)))

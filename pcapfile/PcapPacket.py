@@ -34,6 +34,9 @@ class PcapPacket:
             self.protocols.append("Ethernet")
             self.ethernet = Ethernet(self)
 
+    def __len__(self):
+        return len(self.rawData)
+
     def __getitem__(self, k):
         return self.rawData[k]
 

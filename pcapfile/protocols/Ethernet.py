@@ -15,13 +15,12 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 from struct import Struct
+from helpers import macHex
 from IP import IP
-
-def macstr(mac):
-    return ":".join(map(lambda x: "{0:02x}".format(x), mac))
+from ARP import ARP
 
 class Ethernet():
-    struct = Struct("!6B6BH")
+    struct = Struct("!6s6sH")
     size = struct.size
 
     IP = 0x0800
@@ -30,17 +29,26 @@ class Ethernet():
     def __init__(self, packet):
         p = packet.nextHeader
         unpacked = Ethernet.struct.unpack(packet.rawData[p:p+Ethernet.size])
-        self.dst = unpacked[0:6]
-        self.dstStr = macstr(self.dst)
-        self.src = unpacked[6:12]
-        self.srcStr = macstr(self.src)
-        self.proto = unpacked[12]
+        self.dst = unpacked[0]
+        self.src = unpacked[1]
+        self.proto = unpacked[2]
         packet.nextHeader += Ethernet.size
         if self.proto == Ethernet.IP:
             packet.protocols.append("IP")
             packet.ip = IP(packet)
+        elif self.proto == Ethernet.ARP:
+            packet.protocols.append("ARP")
+            packet.arp = ARP(packet)
+
+    @property
+    def dstHex(self):
+        return macHex(self.dst)
+
+    @property
+    def srcHex(self):
+        return macHex(self.src)
 
     def __repr__(self):
-        return "Ethernet(dst={0}, src={1}, proto={2:04x})".format(
-            self.dstStr, self.srcStr, self.proto)
+        return "Ethernet(dst={0}, src={1}, proto=0x{2:04x})".format(
+            self.dstHex, self.srcHex, self.proto)
 
